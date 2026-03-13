@@ -1,7 +1,7 @@
 package ch.protonmail.tdanvers.lambda
 
 fun interpret(expression: Expression): Expression {
-  var result = expression
+  var result = stripParentheses(expression)
   var decayed = beta(result)
   try {
     while (result != decayed) {
@@ -16,20 +16,15 @@ fun interpret(expression: Expression): Expression {
   } catch (_: StackOverflowError) {
     error("overflow caused by unbounded β-decay chain")
   }
-  return result
+  return normalizeParentheses(result)
 }
 
 fun unsafeBeta(expression: Expression) = beta(expression, true)
 
 fun beta(expression: Expression, unsafe: Boolean = false): Expression = when(expression) {
   is Application -> when (expression.f) {
-    is Lambda -> when(expression.x) {
-      is Lambda, is Application -> Parenthetical(expression.x)
-      else -> expression.x
-    }.let { x ->
-      expression.f.e.replace(expression.f.v, x)
-    }
-    is Parenthetical -> beta(Application(expression.f.e, expression.x), unsafe)
+    is Lambda ->
+      expression.f.e.replace(expression.f.v, expression.x)
     else -> {
       val decayed = beta(expression.f, unsafe)
       if (decayed == expression.f && unsafe)
@@ -39,12 +34,20 @@ fun beta(expression: Expression, unsafe: Boolean = false): Expression = when(exp
     }
   }
   is Lambda -> Lambda(expression.v, beta(expression.e, unsafe))
-  is Parenthetical -> beta(expression.e, unsafe)
   else -> expression
-}.let(::normalizeParentheses)
+}
+
+fun stripParentheses(expression: Expression): Expression = when(expression) {
+  is Value, is EmptyExpression -> expression
+  is Parenthetical -> stripParentheses(expression.e)
+  is Lambda -> Lambda(expression.v, stripParentheses(expression.e))
+  is Application -> Application(stripParentheses(expression.f), stripParentheses(expression.x))
+}
 
 fun normalizeParentheses(expression: Expression): Expression = when(expression) {
   is Value, is EmptyExpression -> expression
+  is Parenthetical -> normalizeParentheses(expression.e)
+  is Lambda -> Lambda(expression.v, normalizeParentheses(expression.e))
   is Application -> {
     val left = normalizeParentheses(expression.f)
     val right = normalizeParentheses(expression.x)
@@ -58,8 +61,6 @@ fun normalizeParentheses(expression: Expression): Expression = when(expression) 
       Application(left, right)
     } }
   }
-  is Lambda -> Lambda(expression.v, normalizeParentheses(expression.e))
-  is Parenthetical -> normalizeParentheses(expression.e)
 }
 
 fun Expression.replace(value: Value, expression: Expression): Expression = when(this) {
