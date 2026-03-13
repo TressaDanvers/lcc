@@ -43,8 +43,8 @@ fun generateAndEmit(expression: Expression, targetPath: Path) {
 fun generateMainTemplate(expression: Expression) = Sequence { iterator {
   yieldAll("fun main(vararg args: String) =\n  \"".asSequence())
   yieldAll(expression.prettyString().asSequence())
-  yieldAll(("\".let { listOf(it) + args }.map { it.asSequence() }.map(::parse)"+
-             ".reduce(::Application).let(::interpret).prettyString().let(::println)").asSequence())
+  yieldAll(("\".let { if (args.isEmpty()) parse(it.asSequence()) else (listOf(it) + args).map { it.asSequence() }.map(::parse)"+
+             ".reduce(::Application).let(::interpret) }.prettyString().let(::println)").asSequence())
 } }
 
 fun generateKotlinSource(expression: Expression) = Sequence { iterator {
