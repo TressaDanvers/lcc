@@ -22,12 +22,15 @@ fun beta(expression: Expression): Expression = when(expression) {
     else -> Lambda(expression.v, beta(expression.e))
   }
   is Application -> when(expression.f) {
-    is Lambda -> expression.f.e.replace(expression.f.v, expression.x)
+    is Lambda -> when(expression.x) {
+      is Lambda -> expression.f.e.replace(expression.f.v, Parenthetical(expression.x))
+      else -> expression.f.e.replace(expression.f.v, expression.x)
+    }
     is EmptyExpression -> expression.x
     is Parenthetical -> when(expression.f.e) {
       is EmptyExpression -> beta(expression.x)
-      is Lambda, is Parenthetical -> beta(Application(expression.f.e, expression.x))
-      else -> Application(Parenthetical(beta(expression.f.e)), expression.x)
+      is Lambda, is Parenthetical -> Parenthetical(beta(Application(expression.f.e, expression.x)))
+      else -> Application(beta(expression.f.e), expression.x)
     }
     is Application -> {
       val fDecay = beta(expression.f)
