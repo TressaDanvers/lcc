@@ -3,11 +3,15 @@ package ch.protonmail.tdanvers.lambda
 fun interpret(expression: Expression): Expression {
   var result = expression
   var decayed = beta(result)
-  while (result != decayed) {
-    result = decayed
-    decayed = beta(result)
-    while (decayed is Parenthetical)
-      decayed = decayed.e
+  try {
+    while (result != decayed) {
+      result = decayed
+      decayed = beta(result)
+      while (decayed is Parenthetical)
+        decayed = decayed.e
+    }
+  } catch (_: StackOverflowError) {
+    error("overflow caused by unbounded β-decay chain")
   }
   return result
 }

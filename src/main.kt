@@ -2,8 +2,9 @@ package ch.protonmail.tdanvers.lambda
 
 import kotlin.io.path.*
 import java.nio.file.*
+import kotlin.uuid.*
 
-const val VERSION_INFO = """lcc v1.0.0
+const val VERSION_INFO = """lcc v1.0.1-pre
 Copyright (C) 2026 Tressa Danvers.
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
@@ -20,6 +21,7 @@ Information Options:
   --version                Display compiler version information.
 """
 
+@ExperimentalUuidApi
 fun main(vararg args: String) {
   val (switches, inputFiles) =
     parseArguments(args.map { SWITCH_ALIASES[it] ?: it })
@@ -40,17 +42,23 @@ fun main(vararg args: String) {
     callAllProcs(switches)
 }
 
+@ExperimentalUuidApi
 fun compile(inputFiles: List<String>, outputPath: Path?, shouldNormalize: Boolean): Nothing {
   if (inputFiles.isEmpty())
     fatalError("no input files\ncompilation terminated.")
 
   inputFiles
     .map(::parsePath)
+    .also { potentialInputPaths ->
+      val nonFiles = potentialInputPaths.filterNot(Path::isRegularFile)
+      if (nonFiles.isNotEmpty())
+        fatalError("the following input files could not be found: ${nonFiles.joinToString(", ")}")
+    }
     .map(Path::sequencedReader)
     .map(::parse)
     .reduce(::Application)
     .let { if (shouldNormalize) interpret(it) else it }
-    .let { generateAndEmit(it, outputPath ?: parsePath("${inputFiles.first()}.o")) }
+    .let { generateAndEmit(it, outputPath ?: getDefaultOutputPath(inputFiles)) }
 
   exitSuccess()
 }
@@ -110,6 +118,11 @@ val List<Pair<String,List<String>>>.outputPath get() =
     ?.let { (_, arguments) -> arguments.first() }
     .let { it }
     ?.let(::parsePath)
+
+fun getDefaultOutputPath(inputFiles: List<String>) =
+  Path("${inputFiles.first()}")
+    .run { "$nameWithoutExtension.lci" }
+    .let(::parsePath)
 
 val List<Pair<String,List<String>>>.shouldNormalize get() =
   none { (it) -> it ==  "--unnormalized" }
