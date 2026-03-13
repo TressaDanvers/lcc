@@ -15,7 +15,7 @@ fun generateAndEmit(expression: Expression, targetPath: Path) {
   val kotlinSourcePath = parsePath("$targetPath-$uuid.kt")
   val jarPath = parsePath("$targetPath-$uuid.jar")
 
-  if (!targetPath.isWritable())
+  if (targetPath.exists() && !targetPath.isWritable())
     fatalError("cannot write to target path: $targetPath")
 
   try {

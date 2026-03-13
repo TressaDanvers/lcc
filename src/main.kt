@@ -102,14 +102,14 @@ fun parseArguments(args: Iterable<String>) =
       val satisfiedArguments = lastSwitchArguments.size
 
       if (satisfiedArguments < argumentCountOfSwitch)
-        (switches.drop(1) + (lastSwitch to (lastSwitchArguments + next))) to inputFiles
+        (switches.dropLast(1) + (lastSwitch to (lastSwitchArguments + next))) to inputFiles
       else if (next.isSwitch()) (switches + (next to emptyList())) to inputFiles
       else switches to (inputFiles + next)
     }
   }.let { (switches, inputFiles) ->
     val distinctSwitches = switches.distinctBy { (it) -> it }
     if (distinctSwitches.size != switches.size)
-      fatalError("provided command-line option(s) more than once")
+      fatalError("provided command-line option(s) more than once, ${switches.prettySwitchList()}")
     distinctSwitches.sortedBy { (it) -> it } to inputFiles
   }
 
