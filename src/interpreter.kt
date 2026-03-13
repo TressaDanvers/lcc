@@ -8,13 +8,20 @@ fun interpret(expression: Expression): Expression {
       result = decayed
       decayed = beta(result)
     }
+    for (i in 0..<100) {
+      result = decayed
+      decayed = unsafeBeta(result)
+      if (result == decayed) break
+    }
   } catch (_: StackOverflowError) {
     error("overflow caused by unbounded β-decay chain")
   }
   return result
 }
 
-fun beta(expression: Expression): Expression = when(expression) {
+fun unsafeBeta(expression: Expression) = beta(expression, true)
+
+fun beta(expression: Expression, unsafe: Boolean = false): Expression = when(expression) {
   is Application -> when (expression.f) {
     is Lambda -> when(expression.x) {
       is Lambda, is Application -> Parenthetical(expression.x)
@@ -22,16 +29,16 @@ fun beta(expression: Expression): Expression = when(expression) {
     }.let { x ->
       expression.f.e.replace(expression.f.v, x)
     }
-    is Parenthetical -> beta(Application(expression.f.e, expression.x))
+    is Parenthetical -> beta(Application(expression.f.e, expression.x), unsafe)
     else -> {
-      val decayed = beta(expression.f)
-      if (decayed == expression.f)
-        Application(expression.f, beta(normalizeParentheses(expression.x)))
+      val decayed = beta(expression.f, unsafe)
+      if (decayed == expression.f && unsafe)
+        Application(expression.f, beta(expression.x, unsafe))
       else
         Application(decayed, expression.x)
     }
   }
-  is Lambda -> Lambda(expression.v, beta(expression.e))
+  is Lambda -> Lambda(expression.v, beta(expression.e, unsafe))
   else -> expression
 }.let(::normalizeParentheses)
 
