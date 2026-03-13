@@ -58,11 +58,11 @@ fun Expression.replace(value: Value, expression: Expression): Expression = when(
   value -> expression
   is Parenthetical -> Parenthetical(e.replace(value, expression))
   is Application -> Application(f.replace(value, expression), x.replace(value, expression))
-  is Lambda -> mask(Lambda(value, expression)).let { (v, e) -> Lambda(v, e.replace(value, expression)) }
+  is Lambda -> alpha(Lambda(value, expression)).let { (v, e) -> Lambda(v, e.replace(value, expression)) }
   else -> this
 }
 
-fun Lambda.mask(expression: Expression = EmptyExpression): Lambda =
+fun Lambda.alpha(expression: Expression = EmptyExpression): Lambda =
   Application(this, expression).getAnyFree()
     .let { Lambda(it, e.replace(v, it)) }
 
