@@ -25,13 +25,19 @@ fun parseExpression(source: Sequence<Char>): Pair<Expression,Sequence<Char>> =
     }?.let { (e, cs) ->
       parseExpression(cs)
         .takeIf { (it) -> it !is EmptyExpression }
-        ?.let { (eb, cs) ->
-          if (eb is Application) Application(Application(e, eb.f), eb.x) to cs
-          else Application(e, eb) to cs
-        }
+        ?.let { (eb, cs) -> balance(Application(e, eb)) to cs }
         ?: (e to cs)
     }
     ?: (EmptyExpression to source)
+
+fun balance(application: Application): Application {
+  var appl = application
+  while (appl.x is Application)
+    appl = Application(Application(appl.f, appl.x.f), appl.x.x)
+  if (appl.f is Application)
+    appl = Application(balance(appl.f), appl.x)
+  return appl
+}
 
 fun parseLambda(lambdaSymbol: Char, source: Sequence<Char>): Pair<Expression,Sequence<Char>>? =
   lambdaSymbol.takeIf { it in VALID_LAMBDA }

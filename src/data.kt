@@ -4,13 +4,30 @@ sealed interface Expression
 sealed interface Value: Expression
 sealed interface Decomposed
 
-data class Symbol(val c: Char): Value, Decomposed
-data class Prime(val v: Value): Value
+data class Symbol(val c: Char): Value, Decomposed {
+  override fun toString() = "$c"
+}
 
-data object EmptyExpression: Expression, Decomposed
-data class Parenthetical(val e: Expression): Expression
-data class Lambda(val v: Value, val e: Expression): Expression
-data class Application(val f: Expression, val x: Expression): Expression, Decomposed
+
+data class Prime(val v: Value): Value {
+  override fun toString() = "$v'"
+}
+
+data object EmptyExpression: Expression, Decomposed {
+  override fun toString() = "<e>"
+}
+
+data class Parenthetical(val e: Expression): Expression {
+  override fun toString() = "PAR( $e )"
+}
+
+data class Lambda(val v: Value, val e: Expression): Expression {
+  override fun toString() = "LAM( v=$v e=($e) )"
+}
+
+data class Application(val f: Expression, val x: Expression): Expression, Decomposed {
+  override fun toString() = "APPL( f=$f x=$x )"
+}
 
 fun Expression.prettyString(): String =
   prettyStringRecursive(this.decompose(), "")

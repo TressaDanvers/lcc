@@ -17,27 +17,36 @@ fun interpret(expression: Expression): Expression {
 }
 
 fun beta(expression: Expression): Expression = when(expression) {
-  is Lambda -> Lambda(expression.v, beta(expression.e))
+  is Lambda -> when (expression.e) {
+    is Parenthetical -> beta(Lambda(expression.v, expression.e.e))
+    else -> Lambda(expression.v, beta(expression.e))
+  }
   is Application -> when(expression.f) {
-    is Application -> {
-      val reduced = beta(expression.f)
-      if (reduced != expression.f)
-        Application(reduced, expression.x)
-      else
-        Application(reduced, beta(expression.x))
-    }
     is Lambda -> expression.f.e.replace(expression.f.v, expression.x)
     is EmptyExpression -> expression.x
     is Parenthetical -> when(expression.f.e) {
-      is Parenthetical, is Lambda -> beta(Application(expression.f.e, expression.x))
       is EmptyExpression -> beta(expression.x)
-      else -> Parenthetical(beta(Application(expression.f.e, expression.x)))
+      is Lambda, is Parenthetical -> beta(Application(expression.f.e, expression.x))
+      else -> Application(Parenthetical(beta(expression.f.e)), expression.x)
+    }
+    is Application -> {
+      val fDecay = beta(expression.f)
+      if (fDecay != expression.f)
+        Application(fDecay, expression.x)
+      else
+        Application(expression.f, beta(expression.x))
     }
     else -> expression
   }
   is Parenthetical -> when(expression.e) {
     is Parenthetical -> beta(expression.e)
-    else -> Parenthetical(beta(expression.e))
+    else -> {
+      val decayed = beta(expression.e)
+      when (decayed) {
+        is Application, is Value -> decayed
+        else -> Parenthetical(decayed)
+      }
+    }
   }
   else -> expression
 }
