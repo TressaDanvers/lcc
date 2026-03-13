@@ -26,7 +26,7 @@ fun beta(expression: Expression): Expression = when(expression) {
     else -> {
       val decayed = beta(expression.f)
       if (decayed == expression.f)
-        Application(expression.f, beta(expression.x))
+        Application(expression.f, beta(normalizeParentheses(expression.x)))
       else
         Application(decayed, expression.x)
     }
