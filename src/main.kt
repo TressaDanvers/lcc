@@ -4,7 +4,7 @@ import kotlin.io.path.*
 import java.nio.file.*
 import kotlin.uuid.*
 
-const val VERSION_INFO = """lcc v1.1.0-pre
+const val VERSION_INFO = """lcc v1.1.0
 Copyright (C) 2026 Tressa Danvers.
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
