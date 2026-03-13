@@ -1,0 +1,12 @@
+(λS.
+(λK.
+(λB.
+(λD.
+(λC.
+BBC
+)(S(DS)(KK))
+)(BB)
+)(S(KS)K)
+)(λx.λy.x)
+)(λx.λy.λz.xz(yz))
+abcd

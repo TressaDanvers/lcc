@@ -1,13 +1,18 @@
-.PHONY: all clean install
+.PHONY: build test install clean
 
-all: out/lcc out/lci
+build: out/lci
+
+test: out/test-results
+
+install: out/lci
+	mkdir -p ~/.local/bin
+	cp out/lcc out/lci ~/.local/bin/
 
 clean:
 	rm -rf ./out
 
-install: all
-	mkdir -p ~/.local/bin
-	cp out/lcc out/lci ~/.local/bin/
+out/test-results: out/lci test/
+	bash test/runAllTests.sh
 
 out/lcc: src
 	mkdir -p out

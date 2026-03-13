@@ -39,6 +39,7 @@ fun beta(expression: Expression, unsafe: Boolean = false): Expression = when(exp
     }
   }
   is Lambda -> Lambda(expression.v, beta(expression.e, unsafe))
+  is Parenthetical -> beta(expression.e, unsafe)
   else -> expression
 }.let(::normalizeParentheses)
 

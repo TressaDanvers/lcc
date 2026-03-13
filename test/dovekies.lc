@@ -1,0 +1,10 @@
+(λS.
+(λK.
+(λB.
+(λD.
+DD
+)(BB)
+)(S(KS)K)
+)(λx.λy.x)
+)(λx.λy.λz.xz(yz))
+abcde
