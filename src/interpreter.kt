@@ -7,8 +7,6 @@ fun interpret(expression: Expression): Expression {
     while (result != decayed) {
       result = decayed
       decayed = beta(result)
-      while (decayed is Parenthetical)
-        decayed = decayed.e
     }
   } catch (_: StackOverflowError) {
     error("overflow caused by unbounded β-decay chain")
@@ -17,41 +15,43 @@ fun interpret(expression: Expression): Expression {
 }
 
 fun beta(expression: Expression): Expression = when(expression) {
-  is Lambda -> when (expression.e) {
-    is Parenthetical -> beta(Lambda(expression.v, expression.e.e))
-    else -> Lambda(expression.v, beta(expression.e))
-  }
-  is Application -> when(expression.f) {
+  is Application -> when (expression.f) {
     is Lambda -> when(expression.x) {
-      is Lambda -> expression.f.e.replace(expression.f.v, Parenthetical(expression.x))
-      else -> expression.f.e.replace(expression.f.v, expression.x)
+      is Lambda, is Application -> Parenthetical(expression.x)
+      else -> expression.x
+    }.let { x ->
+      expression.f.e.replace(expression.f.v, x)
     }
-    is EmptyExpression -> expression.x
-    is Parenthetical -> when(expression.f.e) {
-      is EmptyExpression -> beta(expression.x)
-      is Lambda, is Parenthetical -> Parenthetical(beta(Application(expression.f.e, expression.x)))
-      else -> Application(beta(expression.f.e), expression.x)
-    }
-    is Application -> {
-      val fDecay = beta(expression.f)
-      if (fDecay != expression.f)
-        Application(fDecay, expression.x)
-      else
-        Application(expression.f, beta(expression.x))
-    }
-    else -> expression
-  }
-  is Parenthetical -> when(expression.e) {
-    is Parenthetical -> beta(expression.e)
+    is Parenthetical -> beta(Application(expression.f.e, expression.x))
     else -> {
-      val decayed = beta(expression.e)
-      when (decayed) {
-        is Application, is Value -> decayed
-        else -> Parenthetical(decayed)
-      }
+      val decayed = beta(expression.f)
+      if (decayed == expression.f)
+        Application(expression.f, beta(expression.x))
+      else
+        Application(decayed, expression.x)
     }
   }
+  is Lambda -> Lambda(expression.v, beta(expression.e))
   else -> expression
+}.let(::normalizeParentheses)
+
+fun normalizeParentheses(expression: Expression): Expression = when(expression) {
+  is Value, is EmptyExpression -> expression
+  is Application -> {
+    val left = normalizeParentheses(expression.f)
+    val right = normalizeParentheses(expression.x)
+    when (right) {
+      is Application, is Lambda -> Parenthetical(right)
+      else -> right
+    }.let { right -> when (left) {
+      is Lambda -> Parenthetical(left)
+      else -> left
+    }.let { left ->
+      Application(left, right)
+    } }
+  }
+  is Lambda -> Lambda(expression.v, normalizeParentheses(expression.e))
+  is Parenthetical -> normalizeParentheses(expression.e)
 }
 
 fun Expression.replace(value: Value, expression: Expression): Expression = when(this) {

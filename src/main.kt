@@ -57,7 +57,7 @@ fun compile(inputFiles: List<String>, outputPath: Path?, shouldNormalize: Boolea
     .map(Path::sequencedReader)
     .map(::parse)
     .reduce(::Application)
-    .let { if (shouldNormalize) interpret(it) else it }
+    .let { if (shouldNormalize) interpret(it) else normalizeParentheses(it) }
     .let { generateAndEmit(it, outputPath ?: getDefaultOutputPath(inputFiles)) }
 
   exitSuccess()
