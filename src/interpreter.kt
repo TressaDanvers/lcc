@@ -19,13 +19,19 @@ fun interpret(expression: Expression): Expression {
 fun beta(expression: Expression): Expression = when(expression) {
   is Lambda -> Lambda(expression.v, beta(expression.e))
   is Application -> when(expression.f) {
-    is Application -> Application(beta(expression.f), expression.x)
+    is Application -> {
+      val reduced = beta(expression.f)
+      if (reduced != expression.f)
+        Application(reduced, expression.x)
+      else
+        Application(reduced, beta(expression.x))
+    }
     is Lambda -> expression.f.e.replace(expression.f.v, expression.x)
     is EmptyExpression -> expression.x
     is Parenthetical -> when(expression.f.e) {
       is Parenthetical, is Lambda -> beta(Application(expression.f.e, expression.x))
-      is EmptyExpression -> expression.x
-      else -> expression
+      is EmptyExpression -> beta(expression.x)
+      else -> Parenthetical(beta(Application(expression.f.e, expression.x)))
     }
     else -> expression
   }
@@ -40,7 +46,7 @@ fun Expression.replace(value: Value, expression: Expression): Expression = when(
   value -> expression
   is Parenthetical -> Parenthetical(e.replace(value, expression))
   is Application -> Application(f.replace(value, expression), x.replace(value, expression))
-  is Lambda -> mask(expression).let { (v, e) -> Lambda(v, e.replace(value, expression)) }
+  is Lambda -> mask(Lambda(value, expression)).let { (v, e) -> Lambda(v, e.replace(value, expression)) }
   else -> this
 }
 
