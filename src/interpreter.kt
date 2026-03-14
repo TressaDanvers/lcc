@@ -82,13 +82,13 @@ fun Lambda.alpha(expression: Expression = EmptyExpression): Lambda {
   } else this
 }
 
-fun Expression.getAllValues(): Set<Value> = when(this) {
-  is Value -> setOf(this)
+fun Expression.getAllValues(): List<Value> = when(this) {
+  is Value -> listOf(this)
   is Parenthetical -> e.getAllValues()
-  is Lambda -> (v.getAllValues() + e.getAllValues()).toSet()
-  is Application -> (f.getAllValues() + x.getAllValues()).toSet()
-  is EmptyExpression -> emptySet()
-}.distinct().toSet()
+  is Lambda -> (v.getAllValues() + e.getAllValues())
+  is Application -> (f.getAllValues() + x.getAllValues())
+  is EmptyExpression -> emptyList()
+}
 
 operator fun Value.inc(): Value = when(this) {
   is Symbol ->

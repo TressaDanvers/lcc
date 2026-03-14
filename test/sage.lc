@@ -9,7 +9,9 @@
 (λT.
 (λM.
 (λL.
-SLL(KI)
+(λY.
+Y(KI)
+)(SLL)
 )(CBM)
 )(SII)
 )(CI)

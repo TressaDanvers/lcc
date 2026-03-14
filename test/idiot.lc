@@ -1,6 +1,8 @@
 (λS.
 (λK.
-SKK
+(λI.
+I
+)(SKK)
 )(λx.λy.x)
 )(λx.λy.λz.xz(yz))
 a
