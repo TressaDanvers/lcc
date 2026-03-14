@@ -2,7 +2,8 @@
 
 build: out/lci
 
-test: out/test-results
+test: out/lci test/
+	bash -c 'time bash test/runAllTests.sh'
 
 install: out/lci
 	mkdir -p ~/.local/bin
@@ -10,9 +11,6 @@ install: out/lci
 
 clean:
 	rm -rf ./out
-
-out/test-results: out/lci test/
-	bash test/runAllTests.sh
 
 out/lcc: src
 	mkdir -p out
