@@ -71,15 +71,11 @@ fun Expression.replace(value: Value, expression: Expression): Expression = when(
   else -> this
 }
 
-fun Lambda.alpha(expression: Expression = EmptyExpression): Lambda =
-  Application(this, expression).getAnyFree()
-    .let { Lambda(it, e.replace(v, it)) }
-
-fun Expression.getAnyFree(): Value {
+fun Lambda.alpha(expression: Expression = EmptyExpression): Lambda {
+  val values = Application(e, expression).getAllValues()
   var free: Value = Symbol('a')
-  val allValues = getAllValues()
-  while (free in allValues) free++
-  return free
+  while(free in values) free++
+  return Lambda(free, e.replace(v, free))
 }
 
 fun Expression.getAllValues(): Set<Value> = when(this) {
