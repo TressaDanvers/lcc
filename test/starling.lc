@@ -1,1 +1,6 @@
-(λx.λy.λz.xz(yz))abc
+(λS.
+
+S
+
+)(λx.λy.λz.xz(yz))
+abc
